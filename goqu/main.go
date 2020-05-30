@@ -20,14 +20,18 @@ func main() {
 		// 	goqu.COUNT("*").As("total"),
 		// ).
 		Where(
-			goqu.C("created").Gt("2020-05-27 12:47:50.183925-05"),
+			goqu.C("").Gt("2020-05-27 12:47:50.183925-05"),
 			goqu.C("created").Lt("2020-05-27 16:47:49.107218-05"),
 		).
-		Order(goqu.I("created").Desc()).
-		Prepared(true).
+		Order(
+			goqu.I("created").Desc(),
+			goqu.I("name").Desc(),
+		).
+		// Prepared(true).
 		ToSQL()
 	fmt.Println(sql)
 	// fmt.Println(a)
 	// fmt.Println(b)
 	fmt.Println(now)
+
 }
