@@ -13,15 +13,23 @@ func main() {
 	}).ToSQL()
 	fmt.Println(sql)
 
+	// filter := []goqu.Expression{
+	// 	goqu.C("").Gt("2020-05-27 12:47:50.183925-05"),
+	// 	goqu.C("created").Lt("2020-05-27 16:47:49.107218-05"),
+	// }
+
 	now := time.Now()
-	sql, _, _ = goqu.From("providers").
+	filter := []goqu.Expression{
+		goqu.C("created").Gt(now),
+		goqu.C("created").Lt(now),
+	}
+	sql, p, e := goqu.From("providers").
 		Limit(2).
 		// Select(
 		// 	goqu.COUNT("*").As("total"),
 		// ).
 		Where(
-			goqu.C("").Gt("2020-05-27 12:47:50.183925-05"),
-			goqu.C("created").Lt("2020-05-27 16:47:49.107218-05"),
+			filter...,
 		).
 		Order(
 			goqu.I("created").Desc(),
@@ -30,8 +38,10 @@ func main() {
 		// Prepared(true).
 		ToSQL()
 	fmt.Println(sql)
+	fmt.Println(p)
+	fmt.Println(e)
 	// fmt.Println(a)
 	// fmt.Println(b)
-	fmt.Println(now)
+	// fmt.Println(now)
 
 }
