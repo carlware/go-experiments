@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 func main() {
@@ -19,10 +20,15 @@ func main() {
 	// }
 
 	now := time.Now()
-	filter := []goqu.Expression{
+	filter := []exp.Expression{
 		goqu.C("created").Gt(now),
 		goqu.C("created").Lt(now),
 	}
+	ordering := []exp.OrderedExpression{
+		goqu.I("created").Desc(),
+		goqu.I("name").Desc(),
+	}
+
 	sql, p, e := goqu.From("providers").
 		Limit(2).
 		// Select(
@@ -32,8 +38,7 @@ func main() {
 			filter...,
 		).
 		Order(
-			goqu.I("created").Desc(),
-			goqu.I("name").Desc(),
+			ordering...,
 		).
 		// Prepared(true).
 		ToSQL()
