@@ -4,5 +4,6 @@ import "carlware/int/eg"
 
 func main() {
 	// eg.TestInterfaceContainer()
-	eg.TestEmbedded()
+	// eg.TestEmbedded()
+	eg.TestRW()
 }
