@@ -1,11 +1,9 @@
 package egs
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"go/ast"
-	"go/format"
 	"go/parser"
 	"go/token"
 )
@@ -109,6 +107,19 @@ func (c *config) getStruct(node ast.Node, start, end int) []Field {
 	return fields
 }
 
+func getFieldsByName(structs map[token.Pos]*structType, name string) []Field {
+	fields := []Field{}
+
+	var encStruct *ast.StructType
+	for _, st := range structs {
+		if st.name == c.structName {
+			encStruct = st.node
+		}
+	}
+
+	return fields
+}
+
 // collectStructs collects and maps structType nodes to their positions
 func collectStructs(node ast.Node) map[token.Pos]*structType {
 	structs := make(map[token.Pos]*structType, 0)
@@ -151,24 +162,26 @@ func TestCollectStructs() {
 	fs := token.NewFileSet()
 	f := getAst(CODE, fs)
 
-	c := &config{
-		structName: "Foo",
-		fset:       fs,
-		code:       CODE,
-	}
+	structs := collectStructs(f)
+	fmt.Println(structs)
 
-	s, e, err := c.structSelection(f)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("start", s, "end", e)
-	st := c.getStruct(f, s, e)
-	fmt.Println(st)
+	// c := &config{
+	// 	structName: "Foo",
+	// 	fset:       fs,
+	// 	code:       CODE,
+	// }
+	// s, e, err := c.structSelection(f)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("start", s, "end", e)
+	// st := c.getStruct(f, s, e)
+	// fmt.Println(st)
 
-	buf := &bytes.Buffer{}
-	err = format.Node(buf, fs, f)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("//code// \n%s \n", buf.Bytes())
+	// buf := &bytes.Buffer{}
+	// err = format.Node(buf, fs, f)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Printf("//code// \n%s \n", buf.Bytes())
 }
