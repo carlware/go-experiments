@@ -12,16 +12,18 @@ const CODE = `
 package models
 
 type Bar struct {
-  Baz  Float
+  Baz  *float
   Game bool
 }
 
 type Foo struct {
   Name string
   Age  int
-  Baz  *Baz
+  Baz  *Bar
 }
 `
+
+var TYPES = []string{"string", "int", "float", "bool"}
 
 type structType struct {
 	name string
@@ -107,13 +109,58 @@ func (c *config) getStruct(node ast.Node, start, end int) []Field {
 	return fields
 }
 
-func getFieldsByName(structs map[token.Pos]*structType, name string) []Field {
+func exists(a string) bool {
+	for _, b := range TYPES {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func getFieldsByNode(node *ast.StructType, structs map[token.Pos]*structType) ([]Field, error) {
 	fields := []Field{}
 
-	var encStruct *ast.StructType
+	for _, f := range node.Fields.List {
+		typeExpr := f.Type
+		s := typeExpr.Pos() - 1
+		e := typeExpr.End() - 1
+
+		// grab it in source
+		fieldType := CODE[s:e]
+
+		fieldName := ""
+		if len(f.Names) != 0 {
+			for _, field := range f.Names {
+				fieldName = field.Name
+				break
+			}
+		}
+		trueType := fieldType
+		if fieldType[0] == '*' {
+			trueType = fieldType[1:len(fieldType)]
+		}
+
+		if exists(trueType) {
+			fields = append(fields, Field{fieldName, fieldType, nil})
+		} else {
+			fils := getFieldsByName(structs, trueType)
+			fields = append(fields, Field{fieldName, fieldType, fils})
+		}
+
+		fmt.Println("field: ", fieldName, fieldType)
+	}
+
+	return fields, nil
+}
+
+func getFieldsByName(structs map[token.Pos]*structType, structName string) []Field {
+	var fields []Field
+
 	for _, st := range structs {
-		if st.name == c.structName {
-			encStruct = st.node
+		if st.name == structName {
+			fields, _ := getFieldsByNode(st.node, structs)
+			return fields
 		}
 	}
 
@@ -164,6 +211,8 @@ func TestCollectStructs() {
 
 	structs := collectStructs(f)
 	fmt.Println(structs)
+	fields := getFieldsByName(structs, "Foo")
+	fmt.Println("fields", fields)
 
 	// c := &config{
 	// 	structName: "Foo",
