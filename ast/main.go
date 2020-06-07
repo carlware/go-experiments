@@ -3,5 +3,6 @@ package main
 import "carlware/ast/egs"
 
 func main() {
-	egs.TestStructInfo()
+	// egs.TestStructInfo()
+	egs.TestCollectStructs()
 }
