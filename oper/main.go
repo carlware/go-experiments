@@ -80,30 +80,45 @@ func main() {
 	//inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] )"
 	//inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] or id = 10 )"
 	//inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] or id = 10 or b < 1 )"
-	inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] or id = 10 or ( b < 1 && x = 4 ) )"
-	//inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] )"
+	//inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] or id = 10 or ( b < 1 && x = 4 ) )"
+	//inputString := "( ( tags has ['a','b'] ) or ( ( b = 1 ) && ( c = 0 ) ) )"
+	//inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] or id = 10 or ( b < 1 && ( x < 1 or y = 0 ) ) )"
+	// inputString := "( ( age > 34 && created > 'date' ) or tags has ['all'] )"
+	//inputString := "( ( ( ( tags has ['calm'] ) && ( tags has ['small'] ) ) or ( ( ( age > 10) && ( age < 30 ) ) or ( id = 10 ) ) ) && ( name = Pongo ) )"
+	inputString := "( tags has ['calm','small'] ) or ( ( age > 10 ) && ( age < 30 ) )"
+	// inputString := "( ( tags has ['calm','small'] ) or ( age > 10 ) ) && ( age < 30 )"
+	// inputString := "( tags has ['calm','small'] ) && ( ( age > 10 ) or ( age < 30 ) )"
 	splitString := strings.Split(inputString, " ")
 	for _, item := range splitString {
 		if item == "(" {
 			continue
 		} else if isOperator(item) {
-			operators.Push(item)
+			operators.Enqueue(item)
 		} else if isLogic(item) {
 			logic.Push(item)
 		} else if item == ")" {
-			op, ok := operators.Pop()
-			for ok {
-				r, rok := values.Pop()
-				l, lok := values.Pop()
-				if !rok && !lok {
-					panic("invalid format")
-				}
-				result.Push(fmt.Sprintf("( %s %s %s )", l, op, r))
-				op, ok = operators.Pop()
-			}
+			fmt.Println(values)
+			fmt.Println(result)
+			fmt.Println(operators)
+			fmt.Println(logic)
 
-			lo, ok := logic.Pop()
-			for ok {
+			if !operators.IsEmpty() {
+				op, ok := operators.Pop()
+				fmt.Println("operator", op)
+				for ok {
+					l, rok := values.Pop()
+					r, lok := values.Pop()
+					if !rok && !lok {
+						panic("invalid format")
+					}
+					result.Push(fmt.Sprintf("( %s %s %s )", l, op, r))
+					op, ok = operators.Pop()
+				}
+
+			} else if !logic.IsEmpty() {
+
+				lo, _ := logic.Pop()
+				fmt.Println("logic", lo)
 
 				fmt.Println(result)
 				switch lo {
@@ -113,20 +128,19 @@ func main() {
 					if !rok && !lok {
 						panic("invalid format")
 					}
-					result.Push(fmt.Sprintf("( %s %s %s )", r, lo, l))
+					result.Push(fmt.Sprintf("( %s %s %s )", l, lo, r))
 				case "or":
-					l, rok := result.Pop()
-					r, lok := result.Pop()
+					r, rok := result.Pop()
+					l, lok := result.Pop()
 					if !rok && !lok {
 						panic("invalid format")
 					}
-					result.Push(fmt.Sprintf("%s %s %s", l, lo, r))
+					result.Push(fmt.Sprintf("( %s %s %s )", l, lo, r))
 				}
-				lo, ok = logic.Pop()
 			}
 
 		} else {
-			values.Push(item)
+			values.Enqueue(item)
 		}
 	}
 
@@ -138,6 +152,6 @@ func main() {
 	fmt.Println()
 	fmt.Println("result")
 	fmt.Println("input", inputString)
-	fmt.Println("( " + result[0] + " )")
+	fmt.Println("result", "( "+result[0]+" )")
 
 }
