@@ -24,4 +24,5 @@ func main() {
 	fmt.Println("has owner.address", src.HasField(arg2, "owner.address"))
 	fmt.Println("has owner.address.age", src.HasField(arg2, "owner.address.age"))
 	fmt.Println("has owner.address.cp", src.HasField(arg2, "owner.address.cp"))
+	fmt.Println("has owner.address.cp", src.HasField(arg2, "owner.address.noexist"))
 }
