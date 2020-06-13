@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import "carlware/solid/egs"
 
+func main() {
+	egs.TestLambda()
 }
