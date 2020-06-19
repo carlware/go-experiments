@@ -39,7 +39,6 @@ func echo(conn net.Conn) {
 	defer conn.Close()
 	for {
 		// m := msg{}
-
 		// err := conn.ReadJSON(&m)
 		msg, op, err := wsutil.ReadClientData(conn)
 		if err != nil {
