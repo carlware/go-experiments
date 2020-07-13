@@ -32,6 +32,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
 	}
 
+    fmt.Println("conn", conn)
 	go echo(conn)
 }
 
@@ -43,12 +44,14 @@ func echo(conn net.Conn) {
 		msg, op, err := wsutil.ReadClientData(conn)
 		if err != nil {
 			fmt.Println("error", err)
+			break
 		}
 		fmt.Println("msg", string(msg))
 		fmt.Println("op", op)
 		err = wsutil.WriteServerMessage(conn, op, msg)
 		if err != nil {
 			fmt.Println("error", err)
+			break
 		}
 	}
 }
