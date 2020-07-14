@@ -1,17 +1,26 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
-	"os"
+	"net/http"
 	"time"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
+
+type Proof struct {
+	File string `json:"file"`
+}
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -23,10 +32,33 @@ const secretPath = "key.json"
 const filePath = "cat2.jpg"
 
 func main() {
-	uploadFile(filePath)
+	// uploadFile(filePath)
+	e := echo.New()
+
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	e.POST("/upload", upload)
+
+	e.Logger.Fatal(e.Start(":1323"))
 }
 
-func uploadFile(path string) {
+func upload(c echo.Context) error {
+	p := &Proof{}
+	if err := c.Bind(p); err != nil {
+		return err
+	}
+	b, err := base64.StdEncoding.DecodeString(p.File)
+	if err != nil {
+		return err
+	}
+	reader := bytes.NewReader(b)
+	uploadFile(reader)
+
+	return c.HTML(http.StatusOK, fmt.Sprintf("uploaded successfully"))
+}
+
+func uploadFile(reader io.Reader) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx, option.WithCredentialsFile("key.json"))
 	if err != nil {
@@ -34,15 +66,10 @@ func uploadFile(path string) {
 	}
 	defer client.Close()
 
-	f, err := os.Open(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	name := randomString()
 	bucket := client.Bucket(bucketName)
-	w := bucket.Object("proofs/" + name).NewWriter(ctx)
-	if _, err = io.Copy(w, f); err != nil {
+	w := bucket.Object("proofs/" + name + ".jpeg").NewWriter(ctx)
+	if _, err = io.Copy(w, reader); err != nil {
 		fmt.Printf("io.Copy: %v\n", err)
 	}
 	if err := w.Close(); err != nil {
