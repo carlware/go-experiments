@@ -3,6 +3,7 @@ module carlware/gcs
 go 1.14
 
 require (
+	cloud.google.com/go/storage v1.6.0
 	github.com/go-errors/errors v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/viant/afs v0.18.0
