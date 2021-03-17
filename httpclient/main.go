@@ -1,3 +1,4 @@
+// https://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/?ref=hackernoon.com
 package main
 
 import (
@@ -22,9 +23,11 @@ func NewHttpClient() *client {
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 				MaxConnsPerHost: 3,
-				IdleConnTimeout: 1 * time.Second,
+				MaxIdleConns: 0,
+				MaxIdleConnsPerHost: 3,
+				IdleConnTimeout: 1 * time.Millisecond,
 			},
-			Timeout: 500 * time.Millisecond,
+			Timeout: 10 * time.Second,
 		},
 	}
 }
@@ -38,6 +41,7 @@ func (c *client) Do(host string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer res.Body.Close()
 	return res.StatusCode, err
 }
 
